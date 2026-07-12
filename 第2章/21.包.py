@@ -24,7 +24,7 @@
 # from utils.my_fun import log_separator1, log_separator3
 
 # 绝对路径: 从项目的根目录开始查找
-from 第二章.utils.my_fun import log_separator1, log_separator3
+from 第2章.utils.my_fun import log_separator1, log_separator3
 
 log_separator1()
 log_separator3()
