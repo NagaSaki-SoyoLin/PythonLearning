@@ -51,3 +51,9 @@ python -m venv .venv
 # macOS / Linux
 source .venv/bin/activate
 ```
+
+---
+
+## 许可
+
+- 仅供学习参考，欢迎 Star 和 PR。
