@@ -30,8 +30,8 @@ py_project01/
 ### 第二阶段：应用实践
 
 - **AI 应用** — LLM API 调用、向量数据库、RAG、Agent 开发
-- **数据分析** — NumPy、Pandas、Matplotlib、数据清洗与可视化
 - **网络机器人** — HTTP 协议、requests、爬虫框架、反爬与自动化
+- **数据分析** — NumPy、Pandas、Matplotlib、数据清洗与可视化
 - **面向对象高级** — 封装、继承、多态、描述符、元类、设计模式
 - **Web 应用** — Flask / FastAPI、数据库、RESTful API、部署
 
