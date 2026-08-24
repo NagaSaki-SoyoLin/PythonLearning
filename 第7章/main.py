@@ -1,12 +1,21 @@
 import os
 import json
+import logging
 from datetime import datetime
 from typing import Any
 from fastapi import FastAPI
 from openai import OpenAI
 from pydantic import BaseModel
-from starlette.responses import FileResponse
+from starlette.requests import Request
+from starlette.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+
+# 配置日志的基本信息
+# %(asctime)s: 日志时间, %(levelname)s: 日志级别, %(filename)s: 日志所在文件名, %(lineno)d: 日志所在行号, %(message)s: 日志信息
+logging.basicConfig(
+    level=logging.INFO,  # 日志级别
+    format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'  # 日志格式
+)
 
 # 创建FastAPI实例
 app = FastAPI(title="汉字谜盒")
@@ -115,14 +124,14 @@ class ChatRequest(BaseModel):
 # 定义路径操作函数 -> http://localhost:8000/
 @app.get("/")
 def root():
-    print("访问项目首页")
+    logging.info("访问项目首页")
     return FileResponse("static/index.html")
 
 
 # 新建会话
 @app.post("/api/sessions")
 def create_session() -> ApiResponse:
-    print("创建会话")
+    logging.info("创建会话")
     # 1. 生成会话的标识(名字)
     session_id = generate_session_id()
 
@@ -142,7 +151,7 @@ def create_session() -> ApiResponse:
 # 与AI交互
 @app.post("/api/chat")
 def chat(request: ChatRequest) -> ApiResponse:
-    print(f"与AI交互: {request.session_id} : {request.message}")
+    logging.info(f"与AI交互: {request.session_id} : {request.message}")
     # 1. 加载json文件中的会话数据
     session_path = get_session_file_name(request.session_id)
     with open(session_path, "r", encoding="utf-8") as f:
@@ -155,7 +164,7 @@ def chat(request: ChatRequest) -> ApiResponse:
         messages.append({"role": "user", "content": request.message})
 
     # 3. 调用AI大模型 DeepSeek
-    print(f"-----> 请求的会话信息: {messages}")
+    logging.info(f"-----> 请求的会话信息: {messages}")
     response = client.chat.completions.create(
         model="deepseek-v4-pro",
         messages=messages,
@@ -167,13 +176,13 @@ def chat(request: ChatRequest) -> ApiResponse:
 
     # 4. 获取响应的数据
     ai_response = response.choices[0].message.content
-    print(f"<----- AI大模型响应的数据: {ai_response}")
+    logging.info(f"<----- AI大模型响应的数据: {ai_response}")
 
     # 5. 更新消息列表中的消息
     messages.pop(0)
     messages.append({"role": "assistant", "content": ai_response})
     session_data["message"] = messages
-    print(f"更新后的会话信息: {session_data}")
+    logging.info(f"更新后的会话信息: {session_data}")
 
     # 6. 保存会话信息到json文件中
     with open(session_path, "w", encoding="utf-8") as f:
@@ -186,7 +195,7 @@ def chat(request: ChatRequest) -> ApiResponse:
 # 获取会话列表
 @app.get("/api/sessions")
 def get_sessions() -> ApiResponse:
-    print("获取会话列表")
+    logging.info("获取会话列表")
     # 1. 获取 sessions 目录下的所有文件名
     session_files = os.listdir("sessions")
 
@@ -198,7 +207,43 @@ def get_sessions() -> ApiResponse:
     return ApiResponse(code=200, message="获取成功", data=session_ids)
 
 
+# 获取指定的会话信息
+@app.get("/api/sessions/{session_id}")  # {session_id} 是路径参数, 需要在路径中传入
+def get_session(session_id: str) -> ApiResponse:
+    logging.info(f"获取指定的会话信息: {session_id}")
+    # 1. 获取会话文件名
+    session_path = get_session_file_name(session_id)
+
+    # 2. 加载会话文件
+    with open(session_path, "r", encoding="utf-8") as f:
+        session_data = json.load(f)
+
+    # 3. 返回数据
+    return ApiResponse(code=200, message="获取成功", data=session_data)
+
+
+# 删除指定的会话信息
+@app.delete("/api/sessions/{session_id}")
+def delete_session(session_id: str) -> ApiResponse:
+    logging.info(f"删除指定的会话信息: {session_id}")
+    # 1. 获取会话文件名
+    session_path = get_session_file_name(session_id)
+
+    # 2. 删除会话文件
+    os.remove(session_path)
+
+    # 3. 返回数据
+    return ApiResponse(code=200, message="删除成功", data=None)
+
+
+# 定义异常处理器, 捕获所有异常 -> 返回的对象类型为 Response
+@app.exception_handler(Exception)
+def handle_exception(request: Request, exc: Exception):
+    logging.error(f"处理异常,请求路径: {request.url}, 捕获到异常: {exc}")
+    return JSONResponse(content={"code": 500, "message": "服务器内部错误, 请联系管理员", "data": None})
+
+
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)  # access_log = False 关闭访问日志
