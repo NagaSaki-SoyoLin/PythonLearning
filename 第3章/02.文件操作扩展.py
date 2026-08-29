@@ -6,8 +6,8 @@
         ..: 上一级目录 ---> .. /第2章/file/寻隐者不遇.txt
 
     绝对路径: 从文件系统根目录开始查找,文件位置的完整路径(注意: 反斜杠 在字符串中表示的是转义字符,\n \t)
-        方式一: D:\\Python-Project\\py_project01\\第3章\\resources\\望庐山瀑布.txt
-        方式二: D:/Python-Project/py_project01/第3章/resources/望庐山瀑布.txt
+        方式一: D:\\Python-Project\\PythonLearning\\第3章\\resources\\望庐山瀑布.txt
+        方式二: D:/Python-Project/PythonLearning/第3章/resources/望庐山瀑布.txt
 """
 with open("resources/望庐山瀑布.txt", "r", encoding="utf-8") as f:
     content = f.read()

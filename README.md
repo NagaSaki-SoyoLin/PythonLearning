@@ -100,7 +100,7 @@ py_project01/
 
 ```bash
 git clone https://github.com/NagaSaki-SoyoLin/py_project01.git
-cd py_project01
+cd PythonLearning
 python -m venv .venv
 # Windows
 .venv\Scripts\activate
